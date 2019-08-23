@@ -1,9 +1,27 @@
 const express = require("express");
 const router = express.Router();
+const auth = require("../../middleware/auth");
+const Profile = require("../../models/Profile");
+const User = require("../../models/User");
 
-// @route           route get api/profiles
-// @description     test route
-// @access          public access
-router.get("/", (req,res) => res.send("Profiles route"));
+// @route           route get api/profiles/me
+// @description     get current users profile
+// @access          private access
+
+router.get("/me", auth, async (req, res) => {
+  try {
+    const profile = await Profile.findOne({ user: req.user.id }).populate(
+      "user",
+      ["name", "avatar"]
+    );
+    if (!profile) {
+      return res.status(500).json({ msg: "There is no profile for this user" });
+    }
+    res.json(profile);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json("Server error");
+  }
+});
 
 module.exports = router;
